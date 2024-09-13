@@ -15,18 +15,23 @@ logger = logging.Logger("Bot logger")
 async def lifespan(app: FastAPI):
     # Initialize the PTB application during FastAPI startup
     await bot_app.initialize()
+    logger.info('app initilized')
     
     # Yield control to the app
     yield
     
     # Gracefully shut down PTB application during FastAPI shutdown
     await bot_app.shutdown()
+    logger.info('app shutdowned')
+    
     
 app = FastAPI(lifespan=lifespan)
 
 
 @app.post('/tg-webhook')
 async def webhook(request: Request):
+    if not bot_app._initialized:
+        await bot_app.initialize()
     update_data = await request.json()
     logger.info("Update: ")
     logger.info(update_data)
