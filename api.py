@@ -14,7 +14,7 @@ app = FastAPI()
 async def webhook(request: Request):
     update_data = await request.json()
     telegram_update = Update.de_json(update_data, app.bot)
-    app.process_update(telegram_update)
+    await app.process_update(telegram_update)
     return {"status": True}
 
 @app.get('/set-webhook')
@@ -22,8 +22,8 @@ async def set_webhook(request: Request):
     secret_key = request.query_params.get('key')
     if not (Env.SECRET_KEY == secret_key):
         return {"status": False, "message": "Invalid Secret Key"}
-    app.bot.set_webhook(request.query_params.get('webhook_url'))
-    return {"message": "webhook set", "status": False}
+    result = await app.bot.set_webhook(request.query_params.get('webhook_url'))
+    return {"message": "webhook set", "status": False, "result": result}
 
 @app.get('/')
 async def index(request: Request):
