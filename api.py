@@ -39,6 +39,7 @@ async def set_webhook(request: Request):
     secret_key = request.query_params.get('key')
     if not (Env.SECRET_KEY == secret_key):
         return {"status": False, "message": "Invalid Secret Key"}
+    await bot_app.bot.delete_webhook()
     result = await bot_app.bot.set_webhook(request.query_params.get('webhook_url'))
     logger.info(result)
     return {"message": "webhook set", "status": True, "result": result}
