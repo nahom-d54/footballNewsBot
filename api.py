@@ -3,11 +3,26 @@ from telegram import Update
 from app.config.bot import app as bot_app
 from app.config.enviroments import Env
 import logging
+from contextlib import asynccontextmanager
 
 
 
-app = FastAPI()
 logger = logging.Logger("Bot logger")
+
+
+    
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize the PTB application during FastAPI startup
+    await bot_app.initialize()
+    
+    # Yield control to the app
+    yield
+    
+    # Gracefully shut down PTB application during FastAPI shutdown
+    await bot_app.shutdown()
+    
+app = FastAPI(lifespan=lifespan)
 
 
 @app.post('/tg-webhook')
