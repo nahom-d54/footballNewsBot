@@ -15,9 +15,9 @@ logger = logging.Logger("Bot logger")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with bot_app:
-        await bot_app.start()
+        await bot_app.initialize()
         yield
-        await bot_app.stop()
+        await bot_app.shutdown()
     
     
 app = FastAPI(lifespan=lifespan)
