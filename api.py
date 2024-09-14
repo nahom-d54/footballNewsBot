@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
+from http import HTTPStatus
 from telegram import Update
 from app.config.bot import app as bot_app
 from app.config.enviroments import Env
@@ -13,16 +14,10 @@ logger = logging.Logger("Bot logger")
     
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize the PTB application during FastAPI startup
-    await bot_app.initialize()
-    logger.info('app initilized')
-    
-    # Yield control to the app
-    yield
-    
-    # Gracefully shut down PTB application during FastAPI shutdown
-    await bot_app.shutdown()
-    logger.info('app shutdowned')
+    async with bot_app:
+        await bot_app.start()
+        yield
+        await bot_app.stop()
     
     
 app = FastAPI(lifespan=lifespan)
@@ -30,14 +25,14 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post('/tg-webhook')
 async def webhook(request: Request):
-    if not bot_app._initialized:
-        await bot_app.initialize()
+    # if not bot_app._initialized:
+    #     await bot_app.initialize()
     update_data = await request.json()
     logger.info("Update: ")
     logger.info(update_data)
     telegram_update = Update.de_json(update_data, bot_app.bot)
     await bot_app.process_update(telegram_update)
-    return {"status": True}
+    return Response({"status": True}, status_code=HTTPStatus.OK)
 
 @app.get('/set-webhook')
 async def set_webhook(request: Request):
